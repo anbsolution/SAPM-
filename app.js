@@ -16,7 +16,17 @@ function isValidDateKey(value) {
 const monthKey = () => today().slice(0,7);
 let selectedMonth = monthKey();
 function loadState() { try { const parsed = JSON.parse(localStorage.getItem(KEY) || 'null'); return parsed && parsed.settings && Array.isArray(parsed.attendance) ? { ...structuredClone(defaults), ...parsed, settings: { ...defaults.settings, ...parsed.settings } } : structuredClone(defaults); } catch { return structuredClone(defaults); } }
-function save() { localStorage.setItem(KEY, JSON.stringify(state)); render(); }
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    render();
+    return true;
+  } catch (error) {
+    alert('Could not save changes in this browser. Device storage may be full or unavailable. Export a JSON backup if possible, then free storage and try again.');
+    console.error('Attendance storage save failed:', error);
+    return false;
+  }
+}
 function fmtTime(value) { return value ? new Date(value).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—'; }
 function fmtDate(value) { return new Date(value + 'T12:00:00').toLocaleDateString([], {day:'numeric',month:'short'}); }
 function currentRecord() { return state.attendance.find(r => r.checkIn && !r.checkOut) || state.attendance.find(r => r.date === today()); }
@@ -72,9 +82,20 @@ $('addLeaveBtn').addEventListener('click',()=>{ const date=prompt('Leave date (Y
 $('exportJsonBtn').addEventListener('click',()=>download(`attendance-backup-${today()}.json`,JSON.stringify({schemaVersion:1,exportedAt:new Date().toISOString(),...state},null,2),'application/json'));
 $('importJsonInput').addEventListener('change',async e=>{const file=e.target.files?.[0]; if(!file)return; try {
   const incoming=JSON.parse(await file.text());
-  const validSettings=incoming && incoming.settings && typeof incoming.settings==='object' && !Array.isArray(incoming.settings);
-  const validAttendance=Array.isArray(incoming?.attendance) && incoming.attendance.every(r=>r && typeof r==='object' && isValidDateKey(r.date) && (r.checkIn===null || (typeof r.checkIn==='string' && Number.isFinite(Date.parse(r.checkIn)))) && (r.checkOut===null || (typeof r.checkOut==='string' && Number.isFinite(Date.parse(r.checkOut)))) && (!r.checkIn || !r.checkOut || Date.parse(r.checkOut)>=Date.parse(r.checkIn)));
-  const validLeaves=Array.isArray(incoming?.leaves) && incoming.leaves.every(l=>l && typeof l==='object' && isValidDateKey(l.date) && ['paid','unpaid'].includes(l.type));
+  const settings=incoming?.settings;
+  const validSettings=Boolean(settings && typeof settings==='object' && !Array.isArray(settings)
+    && (settings.name===undefined || typeof settings.name==='string')
+    && ['monthlySalary','workingDays','dailyTargetHours','overtimeRate','monthlyDeductions','monthlyBonus'].every(key => settings[key]===undefined || (Number.isFinite(Number(settings[key])) && Number(settings[key])>=0))
+    && (settings.workingDays===undefined || (Number(settings.workingDays)>=1 && Number(settings.workingDays)<=31))
+    && (settings.dailyTargetHours===undefined || (Number(settings.dailyTargetHours)>=1 && Number(settings.dailyTargetHours)<=24)));
+  const validAttendance=Array.isArray(incoming?.attendance) && incoming.attendance.every(r=>r && typeof r==='object' && isValidDateKey(r.date)
+    && (r.checkIn===null || (typeof r.checkIn==='string' && Number.isFinite(Date.parse(r.checkIn))))
+    && (r.checkOut===null || (typeof r.checkOut==='string' && Number.isFinite(Date.parse(r.checkOut))))
+    && (r.checkIn!==undefined && r.checkOut!==undefined)
+    && (!r.checkIn || !r.checkOut || Date.parse(r.checkOut)>=Date.parse(r.checkIn)))
+    && new Set(incoming.attendance.map(r=>r.date)).size===incoming.attendance.length;
+  const validLeaves=Array.isArray(incoming?.leaves) && incoming.leaves.every(l=>l && typeof l==='object' && isValidDateKey(l.date) && ['paid','unpaid'].includes(l.type))
+    && new Set(incoming.leaves.map(l=>l.date)).size===incoming.leaves.length;
   if(!validSettings || !validAttendance || !validLeaves) throw new Error('Invalid backup format');
   if(!confirm('Import replaces the current data on this device. Export a backup first. Continue?')) return;
   state={...structuredClone(defaults),...incoming,settings:{...defaults.settings,...incoming.settings}};
