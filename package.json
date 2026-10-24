@@ -1,0 +1,8 @@
+{
+  "name": "self-attendance-payroll",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal attendance and payroll PWA with local-only storage",
+  "type": "module",
+  "scripts": { "test": "node --test", "check": "node --check app.js && node --check payroll.js && node --check sw.js" }
+}
