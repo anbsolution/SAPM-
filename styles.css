@@ -2,3 +2,5 @@
 @media(min-width:700px){.container{padding-top:36px}.check-card{padding:30px}.stat-grid{gap:18px}.stat-card{padding:22px}.time-grid{max-width:560px}.button-row .btn{min-width:145px}}
 @media(max-width:420px){.container{padding:22px 14px 30px}.topbar{padding:0 14px}.welcome{align-items:flex-start;flex-direction:column}.check-card{padding:20px}.button-row .btn{flex:1;padding:12px 8px}.stat-card{padding:14px}.section-head h2{font-size:17px}.pay-card{padding:18px}.backup-card .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+.month-picker-label{display:flex;align-items:center;gap:8px;margin-top:10px;color:#7d8799;font-size:11px;font-weight:700}.month-picker-label input{border:1px solid var(--line);background:#f8faff;color:var(--ink);border-radius:9px;padding:8px;font:inherit;max-width:155px}.month-picker-label input:focus{outline:2px solid #9bb3ff}@media(max-width:520px){.section-head:has(.month-picker-label){align-items:flex-start;flex-wrap:wrap}.month-picker-label{flex-wrap:wrap}}

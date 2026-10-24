@@ -1,6 +1,6 @@
 {
   "name": "self-attendance-payroll",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Personal attendance and payroll PWA with local-only storage",
   "type": "module",
